@@ -54,7 +54,7 @@ export const productEdit = async (req, res) => {
 
     const product = await gameProduct.findById(productId);
     if (!product) {
-      return res.status(404).json({
+      return res.status(400).json({
         message: "ID produk tidak ditemukan"
       });
     }
@@ -82,7 +82,7 @@ export const productDelete = async (req, res) => {
     const product = await gameProduct.findById(productId);
 
     if (!product) {
-      return res.status(404).json({
+      return res.status(400).json({
         message: "ID produk tidak ditemukan"
       });
     }
@@ -100,14 +100,13 @@ export const productDelete = async (req, res) => {
 };
 
 //function order and edit order
-
 export const getOrder = async (req, res) => {
   try {
     // Ambil semua order
     const orders = await topupOrders.find({}).populate('product', 'productName price');
 
     if (orders.length === 0) {
-      return res.status(404).json({
+      return res.status(400).json({
         message: "belum ada orderan"
       });
     }
