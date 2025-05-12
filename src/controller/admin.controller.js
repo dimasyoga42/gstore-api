@@ -1,6 +1,6 @@
 import gameProduct from "../model/game.nodel.js";
 import topupOrders from "../model/topuporder.model.js";
-
+import joi from "joi";
 export const getProduct = async (req, res) => {
     try {
         const product = await gameProduct.find({isActive: true});
@@ -22,6 +22,18 @@ export const getProduct = async (req, res) => {
 
 export const addProduct = async(req, res) => {
     try {
+      //validation
+      const schema = joi.object({
+        game: joi.string().required(),
+        productName: joi.string().required(),
+        price: joi.number().required(),
+        itemCode: joi.string().required(),
+        isActive: joi.boolean(),
+      })
+      const {error} = schema.validate(req.body);
+      if(error) {
+        return res.status(400).json({ message: error.details[0].message });
+      }
         const {game, productName, price, itemCode, isActive} = req.body;
         if(!game || !productName || !price || !itemCode ) {
             res.status(400).json({
@@ -117,6 +129,37 @@ export const getOrder = async (req, res) => {
     });
   } catch (error) {
     console.error("Error saat mengambil order:", error);
+    return res.status(500).json({
+      message: "Terjadi kesalahan pada server"
+    });
+  }
+};
+
+export const editOrder = async (req, res) => {
+  try {
+    const orderId = req.params.id;
+    const orderStatus = req.body;
+
+    // Validasi jika orderId tidak ditemukan
+    const orderFind = await topupOrders.findById(orderId);
+    if (!orderFind) {
+      return res.status(404).json({
+        message: "Order dengan ID tersebut tidak ditemukan"
+      });
+    }
+
+    // Update status order
+    const updatedOrder = await topupOrders.findByIdAndUpdate(orderId, orderStatus, {
+      new: true,
+      runValidators: true
+    });
+
+    return res.status(200).json({
+      message: "Status order berhasil diubah",
+      updatedOrder
+    });
+  } catch (error) {
+    console.error("Error saat mengedit order:", error.message);
     return res.status(500).json({
       message: "Terjadi kesalahan pada server"
     });
